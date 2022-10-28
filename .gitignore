@@ -1,0 +1,9 @@
+/.git
+/.settings
+/Debug/
+/Drivers
+/.cproject
+/.mxproject
+/.project
+/STM32G070RBTX_FLASH.ld
+

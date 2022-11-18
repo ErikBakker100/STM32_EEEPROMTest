@@ -1,9 +1,13 @@
-/.git
-/.settings
+/.settings/
+/.git/
 /Debug/
-/Drivers
+/.project
+/HotPlateController Debug.launch
+/HotPlateController.launch
+/STM32G070RBTX_FLASH.ld
 /.cproject
 /.mxproject
-/.project
-/STM32G070RBTX_FLASH.ld
+/build/
+/cmake/
+/.vscode/
 

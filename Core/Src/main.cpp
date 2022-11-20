@@ -66,6 +66,8 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	EE_Status ee_status = EE_OK;
+  /* Unlock the Flash Program Erase controller */
+  HAL_FLASH_Unlock();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/

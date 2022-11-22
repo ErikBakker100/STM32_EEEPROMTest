@@ -43,6 +43,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint32_t VarValue = 1;
+EE_Status ee_status = EE_OK;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -50,7 +51,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void HAL_GPIO_EXTI_Callback(uint16_t);
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t);
 
 /* USER CODE END PFP */
 
@@ -65,8 +66,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-	EE_Status ee_status = EE_OK;
+	/* USER CODE BEGIN 1 */
+	/* Enable and set FLASH Interrupt priority */
+	/* FLASH interrupt is used for the purpose of pages clean up under interrupt */
+	HAL_NVIC_SetPriority(FLASH_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(FLASH_IRQn);
   /* Unlock the Flash Program Erase controller */
   HAL_FLASH_Unlock();
   /* USER CODE END 1 */
@@ -93,29 +97,22 @@ int main(void)
   /* USER CODE BEGIN 2 */
   RetargetInit(&huart2);
   printf("Starting\n");
-  EE_Init(EE_CONDITIONAL_ERASE);
-  ee_status = EE_WriteVariable32bits(1, VarValue);
+  ee_status = EE_Init(EE_FORCED_ERASE);
+  printf("Flash init : %d\n", ee_status);
   ee_status = EE_ReadVariable32bits(1, &VarValue);
+  if (ee_status == EE_OK) printf("Variable : %d\n", VarValue);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
-
-  // EXTI Line9 External Interrupt ISR Handler CallBackFun
-  HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-      if(GPIO_Pin == GPIO_B1_Pin) // If The INT Source Is EXTI Line9 (A9 Pin)
-      {
-      HAL_GPIO_TogglePin(GPIOA, GPIO_LED_GREEN_Pin); // Toggle The Output (LED) Pin
-      }
-  }
   /* USER CODE END 3 */
+}
 
 /**
   * @brief System Clock Configuration
@@ -224,7 +221,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
@@ -242,7 +239,16 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+// EXTI Line9 External Interrupt ISR Handler CallBackFun
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+	  if(GPIO_Pin == B1_Pin) // If The INT Source Is EXTI Line9 (A9 Pin)
+    {
+		  HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin); // Toggle The Output (LED) Pin
+		  VarValue++;
+		  ee_status = EE_WriteVariable32bits(1, VarValue);
+		  ee_status = EE_ReadVariable32bits(1, &VarValue);
+		  if (ee_status == EE_OK) printf("Variable : %d\n", VarValue);    }
+}
 /* USER CODE END 4 */
 
 /**
@@ -254,6 +260,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  printf("Fault occurred, program stopped !");
   while (1)
   {
   }

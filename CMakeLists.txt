@@ -45,7 +45,8 @@ set(sources_SRCS
     ${PROJ_PATH}/Core/Src/main.cpp
     ${PROJ_PATH}/Core/Src/stm32g0xx_it.c
     ${PROJ_PATH}/Core/Src/stm32g0xx_ll_crc.h
-    ${PROJ_PATH}/Core/Src/syscalls.c
+    #${PROJ_PATH}/Core/Src/syscalls.c
+    ${PROJ_PATH}/Core/Src/retarget.c
     ${PROJ_PATH}/Core/Src/sysmem.c
     ${PROJ_PATH}/Core/Src/system_stm32g0xx.c
     ${PROJ_PATH}/Core/Startup/startup_stm32g070rbtx.s

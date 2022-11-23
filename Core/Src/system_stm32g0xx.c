@@ -27,9 +27,9 @@
   *-----------------------------------------------------------------------------
   *        System Clock source                    | HSI
   *-----------------------------------------------------------------------------
-  *        SYSCLK(Hz)                             | 64000000
+  *        SYSCLK(Hz)                             | 16000000
   *-----------------------------------------------------------------------------
-  *        HCLK(Hz)                               | 64000000
+  *        HCLK(Hz)                               | 16000000
   *-----------------------------------------------------------------------------
   *        AHB Prescaler                          | 1
   *-----------------------------------------------------------------------------
@@ -41,7 +41,7 @@
   *-----------------------------------------------------------------------------
   *        PLL_N                                  | 8
   *-----------------------------------------------------------------------------
-  *        PLL_P                                  | 2
+  *        PLL_P                                  | 7
   *-----------------------------------------------------------------------------
   *        PLL_Q                                  | 2
   *-----------------------------------------------------------------------------
@@ -53,17 +53,15 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2018 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2018-2021 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
-
 /** @addtogroup CMSIS
   * @{
   */
@@ -79,19 +77,19 @@
 #include "stm32g0xx.h"
 
 #if !defined  (HSE_VALUE)
-#define HSE_VALUE    8000000U    /*!< Value of the External oscillator in Hz */
+#define HSE_VALUE    (8000000UL)    /*!< Value of the External oscillator in Hz */
 #endif /* HSE_VALUE */
 
 #if !defined  (HSI_VALUE)
-  #define HSI_VALUE  16000000U   /*!< Value of the Internal oscillator in Hz*/
+  #define HSI_VALUE  (16000000UL)   /*!< Value of the Internal oscillator in Hz*/
 #endif /* HSI_VALUE */
 
 #if !defined  (LSI_VALUE)
- #define LSI_VALUE   32000U      /*!< Value of LSI in Hz*/
+ #define LSI_VALUE   (32000UL)     /*!< Value of LSI in Hz*/
 #endif /* LSI_VALUE */
 
 #if !defined  (LSE_VALUE)
-  #define LSE_VALUE  32768U      /*!< Value of LSE in Hz*/
+  #define LSE_VALUE  (32768UL)      /*!< Value of LSE in Hz*/
 #endif /* LSE_VALUE */
 
 /**
@@ -111,11 +109,29 @@
   */
 
 /************************* Miscellaneous Configuration ************************/
-/*!< Uncomment the following line if you need to relocate your vector Table in
-     Internal SRAM. */
+/* Note: Following vector table addresses must be defined in line with linker
+         configuration. */
+/*!< Uncomment the following line if you need to relocate the vector table
+     anywhere in Flash or Sram, else the vector table is kept at the automatic
+     remap of boot address selected */
+/* #define USER_VECT_TAB_ADDRESS */
+
+#if defined(USER_VECT_TAB_ADDRESS)
+/*!< Uncomment the following line if you need to relocate your vector Table
+     in Sram else user remap will be done in Flash. */
 /* #define VECT_TAB_SRAM */
-#define VECT_TAB_OFFSET  0x0U /*!< Vector Table base offset field.
-                                   This value must be a multiple of 0x100. */
+#if defined(VECT_TAB_SRAM)
+#define VECT_TAB_BASE_ADDRESS   SRAM_BASE       /*!< Vector Table base address field.
+                                                     This value must be a multiple of 0x200. */
+#define VECT_TAB_OFFSET         0x00000000U     /*!< Vector Table base offset field.
+                                                     This value must be a multiple of 0x200. */
+#else
+#define VECT_TAB_BASE_ADDRESS   FLASH_BASE      /*!< Vector Table base address field.
+                                                     This value must be a multiple of 0x200. */
+#define VECT_TAB_OFFSET         0x00000000U     /*!< Vector Table base offset field.
+                                                     This value must be a multiple of 0x200. */
+#endif /* VECT_TAB_SRAM */
+#endif /* USER_VECT_TAB_ADDRESS */
 /******************************************************************************/
 /**
   * @}
@@ -140,10 +156,10 @@
                is no need to call the 2 first functions listed above, since SystemCoreClock
                variable is updated automatically.
   */
-  uint32_t SystemCoreClock = 16000000U;
+  uint32_t SystemCoreClock = 16000000UL;
 
-  const uint32_t AHBPrescTable[16] = {0U, 0U, 0U, 0U, 0U, 0U, 0U, 0U, 1U, 2U, 3U, 4U, 6U, 7U, 8U, 9U};
-  const uint32_t APBPrescTable[8] =  {0U, 0U, 0U, 0U, 1U, 2U, 3U, 4U};
+  const uint32_t AHBPrescTable[16UL] = {0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 1UL, 2UL, 3UL, 4UL, 6UL, 7UL, 8UL, 9UL};
+  const uint32_t APBPrescTable[8UL] =  {0UL, 0UL, 0UL, 0UL, 1UL, 2UL, 3UL, 4UL};
 
 /**
   * @}
@@ -168,12 +184,10 @@
   */
 void SystemInit(void)
 {
-  /* Configure the Vector Table location add offset address ------------------*/
-#ifdef VECT_TAB_SRAM
-  SCB->VTOR = SRAM_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM */
-#else
-  SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH */
-#endif
+  /* Configure the Vector Table location -------------------------------------*/
+#if defined(USER_VECT_TAB_ADDRESS)
+  SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation */
+#endif /* USER_VECT_TAB_ADDRESS */
 }
 
 /**
@@ -228,40 +242,41 @@ void SystemCoreClockUpdate(void)
   /* Get SYSCLK source -------------------------------------------------------*/
   switch (RCC->CFGR & RCC_CFGR_SWS)
   {
-    case RCC_CFGR_SWS_HSE:  /* HSE used as system clock */
+    case RCC_CFGR_SWS_0:                /* HSE used as system clock */
       SystemCoreClock = HSE_VALUE;
       break;
 
-    case RCC_CFGR_SWS_LSI:  /* LSI used as system clock */
+    case (RCC_CFGR_SWS_1 | RCC_CFGR_SWS_0):  /* LSI used as system clock */
       SystemCoreClock = LSI_VALUE;
       break;
 
-    case RCC_CFGR_SWS_LSE:  /* LSE used as system clock */
+    case RCC_CFGR_SWS_2:                /* LSE used as system clock */
       SystemCoreClock = LSE_VALUE;
       break;
 
-    case RCC_CFGR_SWS_PLL:  /* PLL used as system clock */
-      {
+    case RCC_CFGR_SWS_1:  /* PLL used as system clock */
+      /* PLL_VCO = (HSE_VALUE or HSI_VALUE / PLLM) * PLLN
+         SYSCLK = PLL_VCO / PLLR
+         */
       pllsource = (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC);
-      pllm = ((RCC->PLLCFGR & RCC_PLLCFGR_PLLM) >> RCC_PLLCFGR_PLLM_Pos) + 1U;
-      switch (pllsource)
-      {
-        case 0x03:  /* HSE used as PLL clock source */
-          pllvco = (HSE_VALUE / pllm);
-          break;
+      pllm = ((RCC->PLLCFGR & RCC_PLLCFGR_PLLM) >> RCC_PLLCFGR_PLLM_Pos) + 1UL;
 
-        case 0x02:  /* HSI used as PLL clock source */
-        default:
+      if(pllsource == 0x03UL)           /* HSE used as PLL clock source */
+      {
+        pllvco = (HSE_VALUE / pllm);
+      }
+      else                              /* HSI used as PLL clock source */
+      {
           pllvco = (HSI_VALUE / pllm);
-          break;
       }
       pllvco = pllvco * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos);
-      pllr = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLR) >> RCC_PLLCFGR_PLLR_Pos) + 1U);
+      pllr = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLR) >> RCC_PLLCFGR_PLLR_Pos) + 1UL);
+
       SystemCoreClock = pllvco/pllr;
       break;
-      }
-    case RCC_CFGR_SWS_HSI:  /* HSI used as system clock */
-    default:                /* HSI used as system clock */
+      
+    case 0x00000000U:                   /* HSI used as system clock */
+    default:                            /* HSI used as system clock */
       hsidiv = (1UL << ((READ_BIT(RCC->CR, RCC_CR_HSIDIV))>> RCC_CR_HSIDIV_Pos));
       SystemCoreClock = (HSI_VALUE/hsidiv);
       break;
@@ -285,5 +300,3 @@ void SystemCoreClockUpdate(void)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -25,15 +25,10 @@
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
-   
-#include "stm32g0xx.h"
-#include "stm32g0xx_nucleo.h"
-#include "eeprom_emul.h"
+#endif
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,8 +52,6 @@ void HardFault_Handler(void);
 void SVC_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
-void PVD_IRQHandler(void);
-void FLASH_IRQHandler(void);
 void EXTI4_15_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
@@ -69,5 +62,3 @@ void EXTI4_15_IRQHandler(void);
 #endif
 
 #endif /* __STM32G0xx_IT_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

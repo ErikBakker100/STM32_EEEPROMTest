@@ -66,7 +66,7 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t);
   */
 int main(void)
 {
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 	/* Enable and set FLASH Interrupt priority */
 	/* FLASH interrupt is used for the purpose of pages clean up under interrupt */
 	HAL_NVIC_SetPriority(FLASH_IRQn, 0, 0);
@@ -100,7 +100,7 @@ int main(void)
   ee_status = EE_Init(EE_FORCED_ERASE);
   printf("Flash init : %d\n", ee_status);
   ee_status = EE_ReadVariable32bits(1, &VarValue);
-  if (ee_status == EE_OK) printf("Variable : %d\n", VarValue);
+  if (ee_status == EE_OK) printf("Variable : %lu\n", VarValue);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -247,7 +247,7 @@ void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
 		  VarValue++;
 		  ee_status = EE_WriteVariable32bits(1, VarValue);
 		  ee_status = EE_ReadVariable32bits(1, &VarValue);
-		  if (ee_status == EE_OK) printf("Variable : %d\n", VarValue);    }
+		  if (ee_status == EE_OK) printf("Variable : %lu\n", VarValue);    }
 }
 /* USER CODE END 4 */
 
